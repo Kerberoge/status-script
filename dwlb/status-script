@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Simple status line generator script.
+
+fg_ac=7a72b5
+fg_ur=ff5050
+
+print_status() {
+	_s0ix
+	_memory
+	_load
+	_temperature
+	_wifi
+	_battery
+	_date
+	_time
+	dwlb -status all "$s0ix$volume      $memory      $load      $temperature      $wifi      $battery      $date      $time"
+}
+
+_s0ix() {
+	s0ix=
+	[[ -f /tmp/s0ix_stopped_working ]] && s0ix="^fg($fg_ur)S0ix stopped working^fg()      "
+}
+
+_volume() {
+	if pactl list sinks | grep 'Mute' | grep -q yes; then
+		volume="^fg($fg_ac)^fg() muted"
+	else
+		volume="^fg($fg_ac)^fg() $(pactl list sinks | grep 'Volume: front-left' | awk '{ print $5 }')"
+	fi
+}
+
+_memory() {
+	memory="$(free -Lh | awk '{ print $4 }')"
+	memory="^fg($fg_ac)^fg() ${memory:0:-2} ${memory: -2}B"
+}
+
+_load() {
+	load="^fg($fg_ac)^fg() $(uptime | grep -Eo '[0-9]\.[0-9]+' | head -n1)"
+}
+
+_temperature() {
+	temperature="$(cat /sys/class/hwmon/hwmon3/temp1_input)"
+	temperature="${temperature:0:-3}"
+	if [[ $temperature -ge 70 ]]; then
+		temperature="^fg($fg_ac)^fg() ^fg($fg_ur)$temperature°C^fg()"
+	else
+		temperature="^fg($fg_ac)^fg() $temperature°C"
+	fi
+}
+
+_wifi() {
+	if [[ "$(iwctl station wlo1 show | grep State | cut -c35-43)" == "connected" ]]; then
+		wifi="^fg($fg_ac)^fg() $(iwctl station wlo1 show | grep 'Connected network' | awk '{ for (i=3;i<=NF;i++) printf("%s%s", $i, i<NF ? " " : "\n") }')"
+	else
+		wifi="^fg($fg_ac)^fg() ^fg($fg_ur)disconnected^fg()"
+	fi
+}
+
+_battery() {
+	capacity="$(cat /sys/class/power_supply/BAT0/capacity)"
+	if [[ "$(cat /sys/class/power_supply/BAT0/status)" == "Charging" ]]; then
+		battery="^fg($fg_ac) ^fg() $capacity%"
+	elif [[ $capacity -le 10 ]]; then
+		battery="^fg($fg_ac)^fg() ^fg($fg_ur)$capacity%^fg()"
+	else
+		battery="^fg($fg_ac)^fg() $capacity%"
+	fi
+}
+
+_date() {
+	date="^fg($fg_ac)^fg() $(date '+%a %d-%m')"
+}
+
+_time() {
+	time="^fg($fg_ac)^fg() $(date '+%k:%M')"
+}
+
+trap "_volume; print_status; sleep 1 & wait $!" USR1
+
+# Wait till pipewire starts and loads all information
+while ! pactl list sinks 2>&1 | grep -q alsa_output; do continue; done
+_volume
+while :; do
+	print_status
+	sleep 1 &
+	wait $!
+done
