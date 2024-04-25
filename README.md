@@ -1,5 +1,5 @@
 # status-script
-This script is a status line generator. It works as a replacement for i3status, and can be used as-is for swaybar and i3bar. To customize it, just edit the script itself, you'll find that this is rather easy.
+This script is a status line generator. It works as a replacement for i3status, and can be used as-is for swaybar and i3bar. There's also a version for dwlb (see https://github.com/kolunmi/dwlb). To customize it, just edit the script itself, you'll find that this is rather easy.
 
 Required programs:
 - bash or a similar shell (duh)
