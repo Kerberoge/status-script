@@ -31,7 +31,7 @@ _volume() {
 }
 
 _memory() {
-	memory="$(free -Lh | awk '{ print $4 }')"
+	memory="$(free -Lh | awk '{ print $6 }')"
 	memory="<span color='$fg_ac'></span> ${memory:0:-2} ${memory: -2}B"
 }
 
