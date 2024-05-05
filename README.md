@@ -16,3 +16,8 @@ Required programs:
 - date
 
 However, most of these programs can be replaced by their counterparts by editing the script, if you wish to do so.
+
+You'll also need FontAwesome if you want the icons in your status line.
+
+This is what it looks like:
+![screenshot of status line](screenshot.png)
