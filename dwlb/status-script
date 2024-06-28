@@ -10,16 +10,16 @@ print_status() {
 	_memory
 	_load
 	_temperature
-	_wifi
 	_battery
+	_wifi
 	_date
 	_time
-	dwlb -status all "$s0ix$volume      $memory      $load      $temperature      $wifi      $battery      $date      $time"
+	dwlb -status all "$s0ix$volume     $memory     $load     $temperature     $battery     $wifi     $date     $time"
 }
 
 _s0ix() {
 	s0ix=
-	[[ -f /tmp/s0ix_stopped_working ]] && s0ix="^fg($fg_ur)S0ix stopped working^fg()      "
+	[[ -f /tmp/s0ix_stopped_working ]] && s0ix="^fg($fg_ur)S0ix stopped working^fg()     "
 }
 
 _volume() {
@@ -32,7 +32,7 @@ _volume() {
 
 _memory() {
 	memory="$(free -Lh | awk '{ print $6 }')"
-	memory="^fg($fg_ac)^fg() ${memory:0:-2} ${memory: -2}B"
+	memory="^fg($fg_ac)^fg() ${memory:0:-1}"
 }
 
 _load() {
@@ -49,14 +49,6 @@ _temperature() {
 	fi
 }
 
-_wifi() {
-	if [[ "$(iwctl station wlo1 show | grep State | cut -c35-43)" == "connected" ]]; then
-		wifi="^fg($fg_ac)^fg() $(iwctl station wlo1 show | grep 'Connected network' | awk '{ for (i=3;i<=NF;i++) printf("%s%s", $i, i<NF ? " " : "\n") }')"
-	else
-		wifi="^fg($fg_ac)^fg() ^fg($fg_ur)disconnected^fg()"
-	fi
-}
-
 _battery() {
 	capacity="$(cat /sys/class/power_supply/BAT0/capacity)"
 	if [[ "$(cat /sys/class/power_supply/BAT0/status)" == "Charging" ]]; then
@@ -68,12 +60,20 @@ _battery() {
 	fi
 }
 
+_wifi() {
+	if [[ "$(iwctl station wlo1 show | grep State | cut -c35-43)" == "connected" ]]; then
+		wifi="^fg($fg_ac)^fg() $(iwctl station wlo1 show | grep 'Connected network' | awk '{ for (i=3;i<=NF;i++) printf("%s%s", $i, i<NF ? " " : "\n") }')"
+	else
+		wifi="^fg($fg_ac)^fg() ^fg($fg_ur)disconnected^fg()"
+	fi
+}
+
 _date() {
-	date="^fg($fg_ac)^fg() $(date '+%a %d-%m')"
+	date="^fg($fg_ac)^fg() $(date '+%a %d-%m')"
 }
 
 _time() {
-	time="^fg($fg_ac)^fg() $(date '+%k:%M')"
+	time="^fg($fg_ac)^fg() $(date '+%k:%M')"
 }
 
 trap "_volume; print_status; sleep 1 & wait $!" USR1
